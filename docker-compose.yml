@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  # Web Application Service (connected to Supabase)
+  web:
+    build: .
+    container_name: job-tracker-web
+    restart: always
+    ports:
+      - "${HOST_PORT:-3000}:3000"
+    environment:
+      # These environment variables are loaded automatically from your local .env file
+      PGHOST: ${PGHOST}
+      PGPORT: ${PGPORT}
+      PGUSER: ${PGUSER}
+      PGPASSWORD: ${PGPASSWORD}
+      PGDATABASE: ${PGDATABASE}
+      PORT: 3000
+      NODE_ENV: production

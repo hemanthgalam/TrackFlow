@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Nunjucks Macro for Card to keep DRY -->
+{% macro make_card(job) %}
+<div class="kanban-card" draggable="true" id="job-card-{{ job.id }}" data-id="{{ job.id }}" ondragstart="dragCard(event)">
+  <div class="card-drag-handle">
+    <i class="fa-solid fa-grip-lines"></i>
+  </div>
+  <div class="card-body-content">
+    <div class="card-company-header">
+      <h4 class="card-company-name">{{ job.company }}</h4>
+      <a href="/jobs/{{ job.id }}" class="card-detail-arrow" title="View details">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+    </div>
+    <div class="card-role-name">{{ job.role }}</div>
+    
+    <div class="card-meta-row">
+      <span class="card-meta-item"><i class="fa-solid fa-location-dot"></i> {{ job.workplace }}</span>
+      {% if job.salary %}
+        <span class="card-meta-item"><i class="fa-solid fa-dollar-sign"></i> {{ job.salary.split('-')[0] | trim }}</span>
+      {% endif %}
+    </div>
+
+    <div class="card-footer-info">
+      <span class="card-applied-date">Applied: {{ job.dateApplied }}</span>
+      {% if job.timeline.length > 1 %}
+        <span class="card-updates-badge" title="Timeline updates"><i class="fa-solid fa-history"></i> {{ job.timeline.length }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+<div class="kanban-container">
+  <!-- Status Columns -->
+  <div class="kanban-board">
+    
+    <!-- Applied Column -->
+    <div class="kanban-column" data-status="Applied" id="col-applied">
+      <div class="column-header border-applied">
+        <span class="column-title">Applied</span>
+        <span class="column-badge badge-applied">{{ columns.Applied.length }}</span>
+      </div>
+      <div class="kanban-cards-container" ondragover="allowDrop(event)" ondrop="dropCard(event)">
+        {% for job in columns.Applied %}
+          {{ make_card(job) }}
+        {% else %}
+          <div class="column-empty-state">No jobs in Applied</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Interviewing Column -->
+    <div class="kanban-column" data-status="Interviewing" id="col-interviewing">
+      <div class="column-header border-interviewing">
+        <span class="column-title">Interviewing</span>
+        <span class="column-badge badge-interviewing">{{ columns.Interviewing.length }}</span>
+      </div>
+      <div class="kanban-cards-container" ondragover="allowDrop(event)" ondrop="dropCard(event)">
+        {% for job in columns.Interviewing %}
+          {{ make_card(job) }}
+        {% else %}
+          <div class="column-empty-state">No jobs Interviewing</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Offered Column -->
+    <div class="kanban-column" data-status="Offered" id="col-offered">
+      <div class="column-header border-offered">
+        <span class="column-title">Offered</span>
+        <span class="column-badge badge-offered">{{ columns.Offered.length }}</span>
+      </div>
+      <div class="kanban-cards-container" ondragover="allowDrop(event)" ondrop="dropCard(event)">
+        {% for job in columns.Offered %}
+          {{ make_card(job) }}
+        {% else %}
+          <div class="column-empty-state">No offers received yet</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Accepted Column -->
+    <div class="kanban-column" data-status="Accepted" id="col-accepted">
+      <div class="column-header border-accepted">
+        <span class="column-title">Accepted</span>
+        <span class="column-badge badge-accepted">{{ columns.Accepted.length }}</span>
+      </div>
+      <div class="kanban-cards-container" ondragover="allowDrop(event)" ondrop="dropCard(event)">
+        {% for job in columns.Accepted %}
+          {{ make_card(job) }}
+        {% else %}
+          <div class="column-empty-state">No accepted offers yet</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Rejected Column -->
+    <div class="kanban-column" data-status="Rejected" id="col-rejected">
+      <div class="column-header border-rejected">
+        <span class="column-title">Rejected</span>
+        <span class="column-badge badge-rejected">{{ columns.Rejected.length }}</span>
+      </div>
+      <div class="kanban-cards-container" ondragover="allowDrop(event)" ondrop="dropCard(event)">
+        {% for job in columns.Rejected %}
+          {{ make_card(job) }}
+        {% else %}
+          <div class="column-empty-state">No rejections</div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Dynamic functions embedded for immediate support, main logic calls will link to main.js drag handlers
+  function dragCard(ev) {
+    ev.dataTransfer.setData("text/plain", ev.target.id);
+    ev.target.classList.add("dragging");
+  }
+
+  function allowDrop(ev) {
+    ev.preventDefault();
+  }
+
+  // Visual highlights on entering/leaving drop containers are done in CSS via main.js dropzone handlers
+</script>
+{% endblock %}

@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trackflow-web-deployment
+  namespace: default
+  labels:
+    app: trackflow-web
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: trackflow-web
+  template:
+    metadata:
+      labels:
+        app: trackflow-web
+    spec:
+      containers:
+      - name: web
+        # REPLACE [YOUR_AWS_ACCOUNT_ID] and [AWS_REGION] with your ECR settings
+        image: "531394173988.dkr.ecr.eu-north-1.amazonaws.com/trackflow-web:latest"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        
+        # Resource constraints for EKS nodes scheduling efficiency
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+        
+        # Inject DB connection parameters from K8s Secret
+        env:
+        - name: PGHOST
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: PGHOST
+        - name: PGPORT
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: PGPORT
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: PGUSER
+        - name: PGDATABASE
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: PGDATABASE
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: PGPASSWORD
+        - name: PORT
+          value: "3000"
+        - name: NODE_ENV
+          value: "production"
+
+        # Check if the app is alive
+        livenessProbe:
+          httpGet:
+            path: /dashboard
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 15
+        
+        # Check if the app is ready to serve web requests
+        readinessProbe:
+          httpGet:
+            path: /dashboard
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10

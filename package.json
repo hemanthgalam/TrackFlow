@@ -1,0 +1,17 @@
+{
+  "name": "job-tracker",
+  "version": "1.0.0",
+  "description": "Premium Job Application Tracker with Node.js and Nunjucks",
+  "main": "app.js",
+  "scripts": {
+    "start": "node --env-file=.env app.js",
+    "dev": "node --watch --env-file=.env app.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "nunjucks": "^3.2.4",
+    "pg": "^8.11.0",
+    "uuid": "^10.0.0"
+  },
+  "private": true
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title | default('Job Application Tracker') }}</title>
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons for modern aesthetic -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Modern Stylesheet -->
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- Background decorative glass blobs -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <i class="fa-solid fa-briefcase"></i>
+        </div>
+        <span class="logo-text">Track<span>Flow</span></span>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="/dashboard" class="nav-item {% if activePage == 'dashboard' %}active{% endif %}" id="nav-dashboard">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="/kanban" class="nav-item {% if activePage == 'kanban' %}active{% endif %}" id="nav-kanban">
+          <i class="fa-solid fa-table-columns"></i>
+          <span>Kanban Board</span>
+        </a>
+        <a href="/jobs" class="nav-item {% if activePage == 'jobs' %}active{% endif %}" id="nav-jobs">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Applications</span>
+        </a>
+        <a href="/jobs/new" class="nav-item add-job-btn-nav {% if activePage == 'add-job' %}active{% endif %}" id="nav-add-job">
+          <i class="fa-solid fa-plus-circle"></i>
+          <span>Add Application</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="theme-status">
+          <i class="fa-solid fa-circle-half-stroke"></i>
+          <span>Premium Dark Mode</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="page-title-section">
+          <h1>{{ title.split('|')[1] | trim }}</h1>
+          <p class="current-date" id="current-date-display"></p>
+        </div>
+        
+        <div class="user-profile">
+          <div class="profile-avatar">
+            <i class="fa-solid fa-user-astronaut"></i>
+          </div>
+          <div class="profile-info">
+            <span class="profile-name">Candidate</span>
+            <span class="profile-role">Job Seeker</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="content-wrapper">
+        {% block content %}{% endblock %}
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Main JavaScript File -->
+  <script src="/js/main.js"></script>
+</body>
+</html>

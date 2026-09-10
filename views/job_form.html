@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container-card">
+  <div class="card-glow"></div>
+  <div class="form-header-bar">
+    <h2>{% if isEdit %}Edit Application{% else %}Track New Application{% endif %}</h2>
+    <p class="subtitle">{% if isEdit %}Update records for your discussion with {{ job.company }}{% else %}Log details of a job application to track progress{% endif %}</p>
+  </div>
+
+  <form action="{% if isEdit %}/jobs/{{ job.id }}/edit{% else %}/jobs{% endif %}" method="POST" id="job-main-form" class="job-submission-form">
+    <div class="form-grid-2">
+      <!-- Company -->
+      <div class="form-field-wrapper">
+        <label for="company">Company Name <span class="required">*</span></label>
+        <input type="text" id="company" name="company" value="{{ job.company }}" placeholder="E.g. Stripe, OpenAI" required>
+      </div>
+
+      <!-- Role -->
+      <div class="form-field-wrapper">
+        <label for="role">Role Title <span class="required">*</span></label>
+        <input type="text" id="role" name="role" value="{{ job.role }}" placeholder="E.g. Senior Product Designer" required>
+      </div>
+    </div>
+
+    <div class="form-grid-3">
+      <!-- Status -->
+      <div class="form-field-wrapper">
+        <label for="status">Status</label>
+        <select id="status" name="status" class="form-input-select">
+          <option value="Applied" {% if job.status == 'Applied' %}selected{% endif %}>Applied</option>
+          <option value="Interviewing" {% if job.status == 'Interviewing' %}selected{% endif %}>Interviewing</option>
+          <option value="Offered" {% if job.status == 'Offered' %}selected{% endif %}>Offered</option>
+          <option value="Accepted" {% if job.status == 'Accepted' %}selected{% endif %}>Accepted</option>
+          <option value="Rejected" {% if job.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+        </select>
+      </div>
+
+      <!-- Date Applied -->
+      <div class="form-field-wrapper">
+        <label for="dateApplied">Date Applied <span class="required">*</span></label>
+        <input type="date" id="dateApplied" name="dateApplied" value="{{ job.dateApplied }}" required>
+      </div>
+
+      <!-- Salary -->
+      <div class="form-field-wrapper">
+        <label for="salary">Compensation / Salary</label>
+        <input type="text" id="salary" name="salary" value="{{ job.salary }}" placeholder="E.g. $140k - $160k, €90k">
+      </div>
+    </div>
+
+    <div class="form-grid-3">
+      <!-- Workplace Type -->
+      <div class="form-field-wrapper">
+        <label for="workplace">Workplace Type</label>
+        <select id="workplace" name="workplace" class="form-input-select">
+          <option value="Remote" {% if job.workplace == 'Remote' %}selected{% endif %}>Remote</option>
+          <option value="Hybrid" {% if job.workplace == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+          <option value="On-site" {% if job.workplace == 'On-site' %}selected{% endif %}>On-site</option>
+        </select>
+      </div>
+
+      <!-- Job Type -->
+      <div class="form-field-wrapper">
+        <label for="type">Job Type</label>
+        <select id="type" name="type" class="form-input-select">
+          <option value="Full-time" {% if job.type == 'Full-time' %}selected{% endif %}>Full-time</option>
+          <option value="Part-time" {% if job.type == 'Part-time' %}selected{% endif %}>Part-time</option>
+          <option value="Contract" {% if job.type == 'Contract' %}selected{% endif %}>Contract</option>
+          <option value="Internship" {% if job.type == 'Internship' %}selected{% endif %}>Internship</option>
+        </select>
+      </div>
+
+      <!-- Location -->
+      <div class="form-field-wrapper">
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" value="{{ job.location }}" placeholder="E.g. New York, NY or Remote, US">
+      </div>
+    </div>
+
+    <!-- Job listing URL -->
+    <div class="form-field-wrapper">
+      <label for="url">Job Listing URL</label>
+      <input type="url" id="url" name="url" value="{{ job.url }}" placeholder="https://example.com/careers/job-id">
+    </div>
+
+    <!-- Notes -->
+    <div class="form-field-wrapper">
+      <label for="notes">Preparation & Research Notes</label>
+      <textarea id="notes" name="notes" rows="6" placeholder="Paste details of the job listing, salary details, key interview highlights, or interview logs...">{{ job.notes }}</textarea>
+    </div>
+
+    <!-- Contacts Management (Dynamic JSON Serialization) -->
+    <div class="contacts-form-section">
+      <h3>Points of Contact</h3>
+      <p class="subtitle mb-15">Add recruiters, coordinators, or interviewers related to this application</p>
+      
+      <!-- List of added contacts -->
+      <div id="contacts-entries-list" class="contacts-entries-list">
+        <!-- Generated dynamically in javascript -->
+      </div>
+
+      <button type="button" class="btn btn-sm btn-outline" id="add-contact-field-btn">
+        <i class="fa-solid fa-user-plus"></i> Add Contact Person
+      </button>
+
+      <!-- Hidden Input to serialize contacts into form body -->
+      <input type="hidden" name="contacts" id="contacts-hidden-input" value="">
+    </div>
+
+    <!-- Timeline Note (Only when updating status or creating new job) -->
+    {% if not isEdit %}
+      <div class="form-field-wrapper">
+        <label for="timelineNote">Initial Timeline Note</label>
+        <input type="text" id="timelineNote" name="timelineNote" value="Application tracked." placeholder="E.g. Referred by coworker, submitted online, etc.">
+      </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="form-actions-bar">
+      <a href="{% if isEdit %}/jobs/{{ job.id }}{% else %}/jobs{% endif %}" class="btn btn-outline">Cancel</a>
+      <button type="submit" class="btn btn-primary">{% if isEdit %}Save Changes{% else %}Create Application{% endif %}</button>
+    </div>
+  </form>
+</div>
+
+<!-- Embedded contact state initialization -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Set default date to today for new jobs
+    const dateInput = document.getElementById('dateApplied');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Contacts state
+    let contactsList = [];
+    
+    // Parse existing contacts if editing
+    {% if isEdit and job.contacts %}
+      try {
+        contactsList = JSON.parse('{{ job.contacts | dump | safe }}') || [];
+      } catch(e) {
+        console.error("Error reading contacts", e);
+        contactsList = [];
+      }
+    {% endif %}
+
+    const listContainer = document.getElementById('contacts-entries-list');
+    const hiddenInput = document.getElementById('contacts-hidden-input');
+    const addBtn = document.getElementById('add-contact-field-btn');
+    const form = document.getElementById('job-main-form');
+
+    function updateContactsInput() {
+      hiddenInput.value = JSON.stringify(contactsList);
+    }
+
+    function renderContacts() {
+      listContainer.innerHTML = '';
+      if (contactsList.length === 0) {
+        listContainer.innerHTML = '<p class="no-contacts-alert">No contact persons logged.</p>';
+        updateContactsInput();
+        return;
+      }
+
+      contactsList.forEach((c, idx) => {
+        const item = document.createElement('div');
+        item.className = 'contact-entry-card';
+        item.innerHTML = `
+          <div class="contact-card-fields">
+            <input type="text" placeholder="Name" value="${c.name || ''}" class="c-name" required>
+            <input type="text" placeholder="Role (e.g. Recruiter)" value="${c.role || ''}" class="c-role">
+            <input type="email" placeholder="Email" value="${c.email || ''}" class="c-email">
+            <input type="text" placeholder="Phone" value="${c.phone || ''}" class="c-phone">
+          </div>
+          <button type="button" class="remove-contact-btn" data-index="${idx}">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        `;
+        listContainer.appendChild(item);
+      });
+
+      // Bind removals
+      document.querySelectorAll('.remove-contact-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = parseInt(btn.getAttribute('data-index'));
+          contactsList.splice(index, 1);
+          renderContacts();
+        });
+      });
+
+      updateContactsInput();
+    }
+
+    // Add new empty contact
+    addBtn.addEventListener('click', () => {
+      contactsList.push({ name: '', role: '', email: '', phone: '' });
+      renderContacts();
+    });
+
+    // Capture changes on submit to save everything
+    form.addEventListener('submit', (e) => {
+      // Rebuild list from elements to catch current values
+      const cards = document.querySelectorAll('.contact-entry-card');
+      const compiled = [];
+      
+      cards.forEach(card => {
+        const nameVal = card.querySelector('.c-name').value.trim();
+        if (nameVal) {
+          compiled.push({
+            name: nameVal,
+            role: card.querySelector('.c-role').value.trim(),
+            email: card.querySelector('.c-email').value.trim(),
+            phone: card.querySelector('.c-phone').value.trim()
+          });
+        }
+      });
+
+      contactsList = compiled;
+      updateContactsInput();
+    });
+
+    // Render initially
+    renderContacts();
+  });
+</script>
+{% endblock %}

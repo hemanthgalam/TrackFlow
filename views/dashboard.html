@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-grid">
+  <!-- Stats Section -->
+  <div class="stats-overview">
+    <div class="stat-card total-jobs">
+      <div class="card-glow"></div>
+      <div class="stat-header">
+        <span class="stat-label">Total Applications</span>
+        <div class="stat-icon"><i class="fa-solid fa-folder-open"></i></div>
+      </div>
+      <div class="stat-number">{{ stats.total }}</div>
+      <div class="stat-meta">Active search records</div>
+    </div>
+
+    <div class="stat-card status-applied">
+      <div class="stat-header">
+        <span class="stat-label">Applied</span>
+        <div class="stat-icon"><i class="fa-solid fa-paper-plane"></i></div>
+      </div>
+      <div class="stat-number">{{ stats.applied }}</div>
+      <div class="stat-meta">Pending response</div>
+    </div>
+
+    <div class="stat-card status-interviewing">
+      <div class="stat-header">
+        <span class="stat-label">Interviewing</span>
+        <div class="stat-icon"><i class="fa-solid fa-comments"></i></div>
+      </div>
+      <div class="stat-number">{{ stats.interviewing }}</div>
+      <div class="stat-meta">Active discussions</div>
+    </div>
+
+    <div class="stat-card status-offered">
+      <div class="stat-header">
+        <span class="stat-label">Offers Received</span>
+        <div class="stat-icon"><i class="fa-solid fa-award"></i></div>
+      </div>
+      <div class="stat-number">{{ stats.offered }}</div>
+      <div class="stat-meta">Decision pending</div>
+    </div>
+
+    <div class="stat-card status-accepted">
+      <div class="stat-header">
+        <span class="stat-label">Accepted</span>
+        <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+      </div>
+      <div class="stat-number">{{ stats.accepted }}</div>
+      <div class="stat-meta">Success pipeline!</div>
+    </div>
+  </div>
+
+  <!-- Funnel Progress Card -->
+  <div class="dashboard-card funnel-card">
+    <h3>Application Conversion Funnel</h3>
+    <p class="subtitle">Percentage of total jobs advanced past the initial application stage</p>
+    
+    <div class="funnel-container">
+      <div class="funnel-bar-wrapper">
+        <div class="funnel-bar" style="width: {{ stats.conversionRate }}%;">
+          <span class="funnel-percent">{{ stats.conversionRate }}%</span>
+        </div>
+      </div>
+      <div class="funnel-labels">
+        <span>Applied Only ({{ stats.applied }})</span>
+        <span>Interview or Further ({{ stats.total - stats.applied - stats.rejected }})</span>
+        <span>Offers/Accepted ({{ stats.offered + stats.accepted }})</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Columns -->
+  <div class="dashboard-sections">
+    <!-- Left Column: Upcoming & Recents -->
+    <div class="dashboard-col">
+      <!-- Upcoming Interviews -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h3><i class="fa-regular fa-calendar-check text-accent-indigo"></i> Upcoming Interviews</h3>
+          <span class="badge-count">{{ upcomingInterviews.length }}</span>
+        </div>
+        <div class="card-body">
+          {% if upcomingInterviews.length > 0 %}
+            <div class="interview-list">
+              {% for interview in upcomingInterviews %}
+                <div class="interview-item">
+                  <div class="interview-meta">
+                    <span class="company-name">{{ interview.company }}</span>
+                    <span class="role-title">{{ interview.role }}</span>
+                  </div>
+                  <div class="interview-time">
+                    <i class="fa-regular fa-clock"></i>
+                    <span>{{ interview.date }}</span>
+                  </div>
+                  <div class="interview-details">
+                    {{ interview.details }}
+                  </div>
+                  <a href="/jobs/{{ interview.jobId }}" class="btn btn-sm btn-outline">View Details</a>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <i class="fa-regular fa-calendar-times"></i>
+              <p>No upcoming interviews scheduled.</p>
+              <a href="/jobs" class="btn btn-sm btn-primary">Check Applications</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Recent Applications -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-history text-accent-emerald"></i> Recent Applications</h3>
+        </div>
+        <div class="card-body">
+          {% if recentJobs.length > 0 %}
+            <div class="recent-jobs-list">
+              {% for job in recentJobs %}
+                <div class="recent-job-item">
+                  <div class="job-info">
+                    <span class="job-company">{{ job.company }}</span>
+                    <span class="job-role">{{ job.role }}</span>
+                  </div>
+                  <div class="job-status-meta">
+                    <span class="badge {{ getStatusBadgeClass(job.status) }}">{{ job.status }}</span>
+                    <span class="job-date">{{ job.dateApplied }}</span>
+                  </div>
+                  <a href="/jobs/{{ job.id }}" class="view-link"><i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <i class="fa-solid fa-folder-plus"></i>
+              <p>No applications logged yet.</p>
+              <a href="/jobs/new" class="btn btn-sm btn-primary">Add Your First Job</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Timeline Activity -->
+    <div class="dashboard-col">
+      <div class="dashboard-card timeline-card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-wave-square text-accent-violet"></i> Activity Feed</h3>
+        </div>
+        <div class="card-body">
+          {% if topUpdates.length > 0 %}
+            <div class="activity-feed">
+              {% for update in topUpdates %}
+                <div class="activity-item">
+                  <div class="activity-icon-container">
+                    <div class="activity-icon {{ getStatusBadgeClass(update.status) }}">
+                      {% if update.status == 'Applied' %}<i class="fa-solid fa-paper-plane"></i>
+                      {% elif update.status == 'Interviewing' %}<i class="fa-solid fa-comments"></i>
+                      {% elif update.status == 'Offered' %}<i class="fa-solid fa-award"></i>
+                      {% elif update.status == 'Accepted' %}<i class="fa-solid fa-circle-check"></i>
+                      {% else %}<i class="fa-solid fa-circle-xmark"></i>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-header">
+                      <strong>{{ update.company }}</strong>
+                      <span class="activity-role">({{ update.role }})</span>
+                      <span class="activity-date">{{ update.date }}</span>
+                    </div>
+                    <div class="activity-badge-row">
+                      <span class="badge {{ getStatusBadgeClass(update.status) }}">{{ update.status }}</span>
+                    </div>
+                    <p class="activity-note">{{ update.note }}</p>
+                    <a href="/jobs/{{ update.jobId }}" class="activity-detail-link">Go to application &rarr;</a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <i class="fa-solid fa-rss"></i>
+              <p>No recent activity. Update a job status to see items here.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="error-page-container">
+  <div class="error-card">
+    <div class="error-icon">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <h2>Oops! Something went wrong</h2>
+    <p class="error-message">{{ message | default('An unexpected error has occurred.') }}</p>
+    <div class="error-actions">
+      <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+      <a href="/jobs" class="btn btn-outline">View Applications</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

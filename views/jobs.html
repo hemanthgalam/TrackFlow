@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jobs-list-container">
+  <!-- Filters Panel -->
+  <div class="filters-panel">
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="jobs-search-input" placeholder="Search by Company, Role, or Location...">
+    </div>
+    
+    <div class="filter-controls">
+      <div class="filter-group">
+        <label for="status-filter">Status</label>
+        <select id="status-filter" class="filter-select">
+          <option value="all">All Statuses</option>
+          <option value="Applied">Applied</option>
+          <option value="Interviewing">Interviewing</option>
+          <option value="Offered">Offered</option>
+          <option value="Accepted">Accepted</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="workplace-filter">Workplace</label>
+        <select id="workplace-filter" class="filter-select">
+          <option value="all">All Types</option>
+          <option value="Remote">Remote</option>
+          <option value="Hybrid">Hybrid</option>
+          <option value="On-site">On-site</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="jobs-table" id="jobs-table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Role</th>
+            <th>Workplace</th>
+            <th>Date Applied</th>
+            <th>Salary</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if jobs.length > 0 %}
+            {% for job in jobs %}
+              <tr class="job-row" data-id="{{ job.id }}" data-status="{{ job.status }}" data-workplace="{{ job.workplace }}" data-searchable="{{ job.company.toLowerCase() }} {{ job.role.toLowerCase() }} {{ job.location.toLowerCase() }}">
+                <td class="td-company">
+                  <div class="company-info-cell">
+                    <span class="company-name-text">{{ job.company }}</span>
+                    {% if job.location %}
+                      <span class="company-location-text"><i class="fa-solid fa-location-dot"></i> {{ job.location }}</span>
+                    {% endif %}
+                  </div>
+                </td>
+                <td class="td-role">
+                  <div class="role-text">{{ job.role }}</div>
+                  <span class="job-type-badge">{{ job.type }}</span>
+                </td>
+                <td>
+                  <span class="workplace-badge {% if job.workplace == 'Remote' %}wp-remote{% elif job.workplace == 'Hybrid' %}wp-hybrid{% else %}wp-onsite{% endif %}">
+                    {{ job.workplace }}
+                  </span>
+                </td>
+                <td class="td-date">{{ job.dateApplied }}</td>
+                <td class="td-salary">{{ formatSalary(job.salary) }}</td>
+                <td class="td-status">
+                  <select class="status-change-dropdown table-status-select {{ getStatusBadgeClass(job.status) }}" data-job-id="{{ job.id }}">
+                    <option value="Applied" {% if job.status == 'Applied' %}selected{% endif %}>Applied</option>
+                    <option value="Interviewing" {% if job.status == 'Interviewing' %}selected{% endif %}>Interviewing</option>
+                    <option value="Offered" {% if job.status == 'Offered' %}selected{% endif %}>Offered</option>
+                    <option value="Accepted" {% if job.status == 'Accepted' %}selected{% endif %}>Accepted</option>
+                    <option value="Rejected" {% if job.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                  </select>
+                </td>
+                <td class="td-actions text-right">
+                  <div class="actions-group">
+                    <a href="/jobs/{{ job.id }}" class="action-btn btn-view" title="View Details">
+                      <i class="fa-solid fa-eye"></i>
+                    </a>
+                    <a href="/jobs/{{ job.id }}/edit" class="action-btn btn-edit" title="Edit Application">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </a>
+                    <form action="/jobs/{{ job.id }}/delete" method="POST" class="inline-delete-form" onsubmit="return confirm('Are you sure you want to delete this application?');">
+                      <button type="submit" class="action-btn btn-delete" title="Delete">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr class="empty-row">
+              <td colspan="7">
+                <div class="table-empty-state">
+                  <i class="fa-solid fa-briefcase"></i>
+                  <p>No job applications tracked yet.</p>
+                  <a href="/jobs/new" class="btn btn-primary">Track Your First Job</a>
+                </div>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
