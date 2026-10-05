@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "trackflow",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Precompile nunjucks templates before every dev/deploy build
+  "build": {
+    "command": "node scripts/build-views.js",
+    "watch_dir": "views"
+  },
+
+  // CSS/JS in public/ are served directly from Cloudflare's edge
+  "assets": {
+    "directory": "public"
+  },
+
+  // Free-tier D1 database. Replace database_id with the id printed by:
+  //   npx wrangler d1 create trackflow-db
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "trackflow-db",
+      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}
