@@ -64,7 +64,7 @@
     <main class="main-content">
       <header class="top-bar">
         <div class="page-title-section">
-          <h1>{{ title.split('|')[1] | trim }}</h1>
+          <h1>{{ (title or 'Job Tracker').split('|') | last | trim }}</h1>
           <p class="current-date" id="current-date-display"></p>
         </div>
         

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
-const { v4: uuidv4 } = require('uuid');
+const { buildNewJob, applyJobUpdate, appendTimelineEvent } = require('./job-model');
 
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'jobs.json');
@@ -188,31 +188,7 @@ async function getJobById(id) {
 
 // Create a new job application
 async function createJob(jobData) {
-  const now = new Date().toISOString().split('T')[0];
-  const newJob = {
-    id: uuidv4(),
-    company: jobData.company || 'Unnamed Company',
-    role: jobData.role || 'Software Engineer',
-    status: jobData.status || 'Applied',
-    dateApplied: jobData.dateApplied || now,
-    url: jobData.url || '',
-    salary: jobData.salary || '',
-    location: jobData.location || '',
-    type: jobData.type || 'Full-time',
-    workplace: jobData.workplace || 'Remote',
-    notes: jobData.notes || '',
-    contacts: jobData.contacts || [],
-    timeline: [
-      {
-        id: uuidv4(),
-        date: jobData.dateApplied || now,
-        status: jobData.status || 'Applied',
-        note: jobData.timelineNote || 'Application tracked.'
-      }
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
+  const newJob = buildNewJob(jobData);
 
   if (isLocalStorage) {
     const jobs = getLocalJobs();
@@ -238,34 +214,7 @@ async function updateJob(id, updateData) {
   const currentJob = await getJobById(id);
   if (!currentJob) return null;
 
-  const oldStatus = currentJob.status;
-  const newStatus = updateData.status || currentJob.status;
-  const nowStr = new Date().toISOString().split('T')[0];
-
-  const updatedJob = {
-    ...currentJob,
-    company: updateData.company !== undefined ? updateData.company : currentJob.company,
-    role: updateData.role !== undefined ? updateData.role : currentJob.role,
-    status: newStatus,
-    dateApplied: updateData.dateApplied !== undefined ? updateData.dateApplied : currentJob.dateApplied,
-    url: updateData.url !== undefined ? updateData.url : currentJob.url,
-    salary: updateData.salary !== undefined ? updateData.salary : currentJob.salary,
-    location: updateData.location !== undefined ? updateData.location : currentJob.location,
-    type: updateData.type !== undefined ? updateData.type : currentJob.type,
-    workplace: updateData.workplace !== undefined ? updateData.workplace : currentJob.workplace,
-    notes: updateData.notes !== undefined ? updateData.notes : currentJob.notes,
-    contacts: updateData.contacts !== undefined ? updateData.contacts : currentJob.contacts,
-    updatedAt: new Date().toISOString()
-  };
-
-  if (oldStatus !== newStatus) {
-    updatedJob.timeline.push({
-      id: uuidv4(),
-      date: nowStr,
-      status: newStatus,
-      note: updateData.timelineNote || `Status updated from ${oldStatus} to ${newStatus}.`
-    });
-  }
+  const updatedJob = applyJobUpdate(currentJob, updateData);
 
   if (isLocalStorage) {
     const jobs = getLocalJobs();
@@ -298,13 +247,7 @@ async function addTimelineEvent(id, date, status, note) {
   const job = await getJobById(id);
   if (!job) return null;
 
-  const nowStr = new Date().toISOString().split('T')[0];
-  const newTimeline = [...job.timeline, {
-    id: uuidv4(),
-    date: date || nowStr,
-    status: status || job.status,
-    note: note || 'Timeline event recorded.'
-  }];
+  const newTimeline = appendTimelineEvent(job, date, status, note);
 
   if (isLocalStorage) {
     job.timeline = newTimeline;

@@ -5,13 +5,21 @@
   "main": "app.js",
   "scripts": {
     "start": "node --env-file=.env app.js",
-    "dev": "node --watch --env-file=.env app.js"
+    "dev": "node --watch --env-file=.env app.js",
+    "build:views": "node scripts/build-views.js",
+    "cf:dev": "wrangler dev",
+    "cf:migrate:local": "wrangler d1 migrations apply trackflow-db --local",
+    "cf:migrate": "wrangler d1 migrations apply trackflow-db --remote",
+    "cf:deploy": "wrangler deploy"
   },
   "dependencies": {
-    "express": "^4.21.0",
+    "express": "^5.2.1",
     "nunjucks": "^3.2.4",
     "pg": "^8.11.0",
     "uuid": "^10.0.0"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "wrangler": "^4.147.0"
+  }
 }
