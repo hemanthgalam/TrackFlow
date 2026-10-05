@@ -22,7 +22,7 @@
     {
       "binding": "DB",
       "database_name": "trackflow-db",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "database_id": "a62c5f4e-e403-4221-ae65-53eb882cbbe6",
       "migrations_dir": "migrations"
     }
   ],
